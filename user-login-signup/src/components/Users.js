@@ -2,7 +2,52 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const Users = () => {
-    
+    const [users, setUsers] = useState([]);
+    const [form, setForm] = useState({ name: '', email: '', age: '', password: '' });
+    const [editing, setEditing] = useState(false);
+    const [currentUserId, setCurrentUserId] = useState(null);
+
+    useEffect(() => {
+        fetchUsers();
+    }, []);
+
+    const fetchUsers = async () => {
+        try {
+            const response = await axios.get('http://localhost:3000/users');
+            setUsers(response.data);
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        }
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setForm({ ...form, [name]: value });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (editing) {
+            await axios.put(`http://localhost:3000/users/${currentUserId}`, form);
+        } else {
+            await axios.post('http://localhost:3000/users', form);
+        }
+        setForm({ name: '', email: '', age: '', password: '' });
+        setEditing(false);
+        setCurrentUserId(null);
+        fetchUsers();
+    };
+
+    const handleEdit = (user) => {
+        setForm({ name: user.name, email: user.email, age: user.age, password: '' }); 
+        setEditing(true);
+        setCurrentUserId(user._id);
+    };
+
+    const handleDelete = async (id) => {
+        await axios.delete(`http://localhost:3000/users/${id}`);
+        fetchUsers();
+    };
 
     return (
         <div>
